@@ -14,18 +14,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Docker Compose
+    - name: Install Docker Compose
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose version
+
+    - name: Start ELK stack
       run: |
         docker-compose up -d
-        echo "🕒 Waiting for services to start..."
+        echo "⏳ Waiting for ELK services to be ready..."
         sleep 60
 
     - name: Check Elasticsearch Health
       run: |
-        echo "🔍 Checking Elasticsearch health..."
         docker-compose exec -T elasticsearch curl -s http://localhost:9200/_cluster/health | grep '"status":"green"'
 
-    - name: Shut Down ELK stack
-      if: always()  # حتی اگر مرحله قبل fail بشه، این اجرا می‌شه
+    - name: Shut down ELK stack
+      if: always()
       run: docker-compose down
 
