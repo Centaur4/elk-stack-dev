@@ -16,7 +16,7 @@ jobs:
 
     - name: Set up Docker Compose
       run: |
-        docker-compose up -d
+        docker compose up -d
         sleep 30
 
     - name: Check Elasticsearch Health
