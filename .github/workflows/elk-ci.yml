@@ -11,18 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Set up Docker Compose
       run: |
-        docker compose up -d
-        sleep 30
+        docker-compose up -d
+        echo "🕒 Waiting for services to start..."
+        sleep 60
 
     - name: Check Elasticsearch Health
       run: |
-        curl -s http://localhost:9200/_cluster/health | grep '"status":"green"'
+        echo "🔍 Checking Elasticsearch health..."
+        docker-compose exec -T elasticsearch curl -s http://localhost:9200/_cluster/health | grep '"status":"green"'
 
-    - name: Shut Down
+    - name: Shut Down ELK stack
+      if: always()  # حتی اگر مرحله قبل fail بشه، این اجرا می‌شه
       run: docker-compose down
 
