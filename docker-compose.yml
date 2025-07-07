@@ -1,0 +1,65 @@
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node                     # فقط یک نود است؛ برای توسعه
+      - xpack.security.enabled=false                   # غیرفعال کردن احراز هویت برای سادگی
+      - bootstrap.memory_lock=true                     # جلوگیری از سواپ شدن حافظه
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g                     # محدود کردن حافظه جاوا برای ES
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data           # نگهداری اطلاعات ES
+    ports:
+      - "9200:9200"                                     # REST API
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline  # پیکربندی ورودی/خروجی
+    ports:
+      - "5044:5044"                                     # برای Filebeat
+      - "9600:9600"                                     # برای مانیتورینگ Logstash
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200   # اتصال به ES
+    ports:
+      - "5601:5601"                                     # رابط گرافیکی Kibana
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.13.4
+    container_name: filebeat
+    user: root                                         # برای خواندن لاگ‌های سیستم
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/log:/var/log:ro                            # لاگ‌های واقعی سیستم
+    depends_on:
+      - logstash
+    networks:
+      - elk
+
+volumes:
+  esdata:
+
+networks:
+  elk:
+    driver: bridge
+
