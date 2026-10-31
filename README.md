@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/elk-stack-banner.svg" alt="ELK Stack Development Lab — from raw logs to searchable insights" width="100%" />
+<img src="./elk-stack-banner.svg" alt="ELK Stack Development Lab" width="100%" />
 
 <br/>
 
